@@ -1,8 +1,11 @@
 import sublime_plugin
-import math
 
 
 class InlinePythonCommand(sublime_plugin.TextCommand):
+    import math
+    import time
+    import datetime
+
     def run(self, edit):
         for region in self.view.sel():
             if not region.empty():
