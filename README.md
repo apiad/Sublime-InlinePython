@@ -12,10 +12,10 @@ Add the following key bindings to your preferences:
 
 You can of course use a different key binding.
 
-Next, on any open file, select a valid Python expression,
-and press `ctrl+alt+e` to replace the selection for it's
-the Python `repr`. If the evaluation throws any exception,
-you'll see it in the console, and your text will be unchanged.
+Next, on any open file, select a valid Python expression, and press
+`ctrl+alt+e` to replace the selection for it's the Python `repr`. If the
+evaluation throws any exception, you'll see it in the console, and your text
+will be unchanged.
 
 
 License:
