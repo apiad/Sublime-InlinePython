@@ -5,15 +5,29 @@ import sublime
 SETTINGS_FILE = "InlinePython.sublime-settings"
 
 
-class InlinePythonCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
+class _Mixin:
+    def char_at(self, region, index):
+        s = self.view.substr(region)
+        if index >= 0:
+            return s[index] if s and len(s) > index else None
+
+    def expand_region(self, edit, region, expand_chars):
+        pass
+
+    def get_setting(self, setting, default=None):
         settings = sublime.load_settings(SETTINGS_FILE)
         view_settings = self.view.settings()
 
-        imports = view_settings.get('inline_python_imports',
-                                    settings.get('imports'))
-        expand_chars = view_settings.get('inline_python_expand_chars',
-                                         settings.get('expand_chars'))
+        global_value = settings.get(setting, default)
+        local_value = view_settings.get(setting, global_value)
+
+        return local_value
+
+
+class _InlineMixin(_Mixin):
+    def run(self, edit):
+        imports = self.get_setting('imports')
+        expand_chars = self.get_setting('expand_chars')
 
         for imp in imports:
             locals()[imp] = __import__(imp)
@@ -28,7 +42,8 @@ class InlinePythonCommand(sublime_plugin.TextCommand):
 
             try:
                 # Evaluate the selected substring
-                s = repr(eval(s))
+                e = eval(s)
+                s = self.convert(e)
                 # Replace the selection with transformed text
                 self.view.replace(edit, region, s)
                 msg = "InlinePython :: Replacing with `%s`" % s
@@ -40,15 +55,23 @@ class InlinePythonCommand(sublime_plugin.TextCommand):
                 raise e
 
 
-class ExpandExpressionCommand(sublime_plugin.TextCommand):
-    def char_at(self, region, index):
-        s = self.view.substr(region)
-        if index >= 0:
-            return s[index] if s and len(s) > index else None
+class InlinePythonCommand(sublime_plugin.TextCommand, _InlineMixin):
+    def convert(self, e):
+        return repr(e)
 
-    def expand_region(self, edit, region, expand_chars):
-        pass
+    def run(self, edit):
+        _InlineMixin.run(self, edit)
 
+
+class InlinePythonStrCommand(sublime_plugin.TextCommand, _InlineMixin):
+    def convert(self, e):
+        return str(e)
+
+    def run(self, edit):
+        _InlineMixin.run(self, edit)
+
+
+class ExpandExpressionCommand(sublime_plugin.TextCommand, _Mixin):
     def run(self, edit):
         settings = sublime.load_settings(SETTINGS_FILE)
         view_settings = self.view.settings()
