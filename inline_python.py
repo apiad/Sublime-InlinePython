@@ -1,5 +1,6 @@
 import sublime_plugin
 import sublime
+import collections
 
 
 SETTINGS_FILE = "InlinePython.sublime-settings"
@@ -31,6 +32,12 @@ class _InlineMixin(_Mixin):
 
         for imp in imports:
             locals()[imp] = __import__(imp)
+
+        counters = collections.defaultdict(lambda: 0)
+
+        def _(x):
+            counters[x] += 1
+            return counters[x] - 1
 
         for region in self.view.sel():
             if region.empty():
