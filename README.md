@@ -38,7 +38,7 @@ type it and evaluate it (BTW, it is equal to `546`).
 
 You have to write a date that is 96 days up from now. Just type
 `datetime.datetime.today() + datetime.timedelta(days=96)`, select it,
-hit 'ctrl+shift+e' and it gets replaced with `2014-05-12 11:42:20.834988`
+hit `ctrl+shift+e` and it gets replaced with `2014-05-12 11:42:20.834988`
 (or whatever the right day is).
 
 In many cases you have to type in something, which you cannot easily type,
