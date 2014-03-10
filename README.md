@@ -23,7 +23,7 @@ will be unchanged.
 
 
 Examples:
---------
+---------
 
 You are writing a `Markdown` document and need to add a line with
 70 `=`s. Just type `'=' * 70`, select it and hit `ctrl+alt+e`.
@@ -45,6 +45,63 @@ In many cases you have to type in something, which you cannot easily type,
 but you know how to generate it using some list comprehension or other
 Python idioms. Instead of switching to the terminal, firing up IPython and
 generating it, just type it and evaluate it.
+
+
+Imported context:
+-----------------
+
+By default all of `math`, `collections`, `datetime`, `os`, `sys`, `itertools`
+all imported into the local context where your code will evaluate.
+That means that `math.sin(123.45)` works, as well as `os.listdir()`.
+
+If you have a `helpers.py` module in your `Packages` folder, it will
+be included as well. You can modify the default settings file to add
+other imports you want.
+
+
+Automatic counter:
+------------------
+
+The local context also contains a handy automatic counter variable,
+under the name of `_`. For instance, suppose you have the following
+text, somewhere in your files:
+
+    item -> blah blah blah
+    item -> bleh bleh bleh
+    item -> bluh bluh bluh
+
+Very easily with ST3 you can select all `item`, append and `_` at the
+end, select the three `_`s:
+
+    item_ -> blah blah blah
+    item_ -> bleh bleh bleh
+    item_ -> bluh bluh bluh
+
+Hit `ctrl+shift+e` and it will transforms to:
+
+    item0 -> blah blah blah
+    item1 -> bleh bleh bleh
+    item2 -> bluh bluh bluh
+
+In fact, `_` is actually a bit more complicated than that. You
+can call it like a function with a parameter and it will increase
+a different counter for each different parameter.
+For instance:
+
+    item_(0) -> blah blah blah
+    item_(0) -> bleh bleh bleh
+    item_(1) -> bluh bluh bluh
+    item_(1) -> bloh bloh bloh
+
+Transforms into:
+
+    item0 -> blah blah blah
+    item1 -> bleh bleh bleh
+    item0 -> bluh bluh bluh
+    item1 -> bloh bloh bloh
+
+You can use any Python type, like `int` or `str` for the argument
+of `_`.
 
 
 License:

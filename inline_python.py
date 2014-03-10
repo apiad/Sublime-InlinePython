@@ -38,10 +38,24 @@ class _InlineMixin(_Mixin):
 
         counters = collections.defaultdict(lambda: 0)
 
-        def _(x=None):
-            x = x or 'i'
-            counters[x] += 1
-            return counters[x] - 1
+        class Counter:
+            def __init__(self):
+                self.counter = -1
+
+            def __str__(self):
+                self.counter += 1
+                return str(self.counter)
+
+            def __repr__(self):
+                self.counter += 1
+                return repr(self.counter)
+
+            def __call__(self, x):
+                c = counters[x]
+                counters[x] = c + 1
+                return c
+
+        _ = Counter()
 
         for region in self.view.sel():
             if region.empty():
