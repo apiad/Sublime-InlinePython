@@ -31,11 +31,15 @@ class _InlineMixin(_Mixin):
         expand_chars = self.get_setting('expand_chars')
 
         for imp in imports:
-            locals()[imp] = __import__(imp)
+            try:
+                locals()[imp] = __import__(imp)
+            except:
+                pass
 
         counters = collections.defaultdict(lambda: 0)
 
-        def _(x):
+        def _(x=None):
+            x = x or 'i'
             counters[x] += 1
             return counters[x] - 1
 
