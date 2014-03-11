@@ -1,0 +1,4 @@
+[
+    {"caption": "Inline Python: Replace with repr()", "command": "inline_python"},
+    {"caption": "Inline Python: Replace with str()", "command": "inline_python_str"},
+]
