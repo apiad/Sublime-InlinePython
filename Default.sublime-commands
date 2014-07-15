@@ -1,4 +1,6 @@
 [
     {"caption": "Inline Python: Replace with repr()", "command": "inline_python"},
+    {"caption": "Inline Python: Execute selected code", "command": "inline_python_execute"},
+    {"caption": "Inline Python: Run selection through function", "command": "inline_python_run"},
     {"caption": "Inline Python: Replace with str()", "command": "inline_python_str"},
 ]

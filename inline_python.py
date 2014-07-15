@@ -24,36 +24,56 @@ class _Mixin:
 
         return local_value
 
-
-class _InlineMixin(_Mixin):
-    def run(self, edit):
+    def process_imports(self):
         imports = self.get_setting('imports')
-        expand_chars = self.get_setting('expand_chars')
 
         for imp in imports:
             try:
-                locals()[imp] = __import__(imp)
+                globals()[imp] = __import__(imp)
             except:
                 pass
 
+
+class _InlineMixin(_Mixin):
+    def run(self, edit):
+        self.process_imports()
+
+        expand_chars = self.get_setting('expand_chars')
         counters = collections.defaultdict(lambda: 0)
 
         class Counter:
             def __init__(self):
                 self.counter = -1
 
-            def __str__(self):
+            def value(self):
                 self.counter += 1
-                return str(self.counter)
+                return self.counter
+
+            def __str__(self):
+                return str(self.value())
 
             def __repr__(self):
-                self.counter += 1
-                return repr(self.counter)
+                return repr(self.value())
 
             def __call__(self, x):
                 c = counters[x]
                 counters[x] = c + 1
                 return c
+
+            def __add__(self, other):
+                return self.value() + other
+
+            def __sub__(self, other):
+                return self.value() - other
+
+            def __mul__(self, other):
+                return self.value() * other
+
+            def __div__(self, other):
+                return self.value() / other
+
+            def __mod__(self, other):
+                return self.value() % other
 
         _ = Counter()
 
@@ -66,8 +86,12 @@ class _InlineMixin(_Mixin):
             s = self.view.substr(region)
 
             try:
+                # Build the current context
+                current_locals = {}
+                current_locals.update(**locals())
+                current_locals.update(**temporal_locals)
                 # Evaluate the selected substring
-                e = eval(s)
+                e = eval(s, current_locals, globals())
                 s = self.convert(e)
                 # Replace the selection with transformed text
                 self.view.replace(edit, region, s)
@@ -94,6 +118,61 @@ class InlinePythonStrCommand(sublime_plugin.TextCommand, _InlineMixin):
 
     def run(self, edit):
         _InlineMixin.run(self, edit)
+
+
+temporal_locals = {}
+
+
+class InlinePythonExecuteCommand(sublime_plugin.TextCommand, _Mixin):
+    def run(self, edit):
+        for region in self.view.sel():
+            if region.empty():
+                continue
+
+            # Get the selected text
+            s = self.view.substr(region)
+
+            try:
+                # Evaluate the selected substring
+                exec(s, temporal_locals)
+                sublime.status_message("Execution completed.")
+            except Exception as e:
+                msg = "InlinePython :: Error executing script (%s)" % str(e)
+                sublime.status_message(msg)
+                raise e
+
+
+class InlinePythonRunCommand(sublime_plugin.TextCommand, _Mixin):
+    def run(self, edit):
+        functions = list(temporal_locals.keys() - ['__builtins__'])
+
+        if not functions:
+            sublime.status_message("InlinePython :: No functions available.")
+            return
+
+        def done(i):
+            if i < 0:
+                return
+
+            for region in self.view.sel():
+                if region.empty():
+                    continue
+
+                # Get the selected text
+                s = self.view.substr(region)
+
+                try:
+                    # Evaluate the selected substring
+                    s = str(temporal_locals[functions[i]](s))
+                    self.view.replace(edit, region, s)
+                    sublime.status_message("InlinePython :: Execution completed.")
+                except Exception as e:
+                    msg = "InlinePython :: Error executing script (%s)" % str(e)
+                    sublime.status_message(msg)
+                    raise e
+
+        sublime.active_window().show_quick_panel(functions, done,
+                                                 sublime.MONOSPACE_FONT)
 
 
 class ExpandExpressionCommand(sublime_plugin.TextCommand, _Mixin):
