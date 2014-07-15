@@ -56,7 +56,26 @@ That means that `math.sin(123.45)` works, as well as `os.listdir()`.
 
 If you have a `helpers.py` module in your `Packages` folder, it will
 be included as well. You can modify the default settings file to add
-other imports you want.
+other imports that you want.
+
+
+Inject code into the evaluator context:
+---------------------------------------
+
+Hit `ctrl+shift+p` and select the `Inline Python: Execute selected code` command
+to execute the selected code. Instead of `eval`, which only accepts expressions,
+this command uses `exec` with a custom `locals` context, which is later used
+for the `eval` commands. This means that you can inject definitions into
+the evaluator context, to be used later.
+
+For instance, suppose you have the following code, somewhere in your buffer:
+
+    def swap(s):
+        s1, s2 = s.split(',')
+        return s2, s1
+
+You can select the code around the function, and run the `execute` command.
+After this, you'll have a `swap` method available for use.
 
 
 Automatic counter:
