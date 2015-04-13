@@ -97,11 +97,12 @@ class _InlineMixin(_Mixin):
                 self.view.replace(edit, region, s)
                 msg = "InlinePython :: Replacing with `%s`" % s
                 print(msg)
-                sublime.status_message(msg)
             except Exception as e:
                 msg = "InlinePython :: Error evaluating `%s` (%s)" % (s, str(e))
                 sublime.status_message(msg)
                 raise e
+
+        sublime.status_message("InlinePython :: Replacement completed.")
 
 
 class InlinePythonCommand(sublime_plugin.TextCommand, _InlineMixin):
@@ -135,15 +136,22 @@ class InlinePythonExecuteCommand(sublime_plugin.TextCommand, _Mixin):
             try:
                 # Evaluate the selected substring
                 exec(s, temporal_locals)
-                sublime.status_message("Execution completed.")
             except Exception as e:
                 msg = "InlinePython :: Error executing script (%s)" % str(e)
                 sublime.status_message(msg)
                 raise e
 
+        sublime.status_message("InlinePython :: Execution completed.")
+
 
 class InlinePythonRunCommand(sublime_plugin.TextCommand, _Mixin):
-    def run(self, edit):
+    def run(self, edit, function=None):
+        if function is None:
+            self.query_functions()
+        else:
+            self.evaluate_function(edit, function)
+
+    def query_functions(self):
         functions = list(temporal_locals.keys() - ['__builtins__'])
 
         if not functions:
@@ -154,25 +162,34 @@ class InlinePythonRunCommand(sublime_plugin.TextCommand, _Mixin):
             if i < 0:
                 return
 
-            for region in self.view.sel():
-                if region.empty():
-                    continue
-
-                # Get the selected text
-                s = self.view.substr(region)
-
-                try:
-                    # Evaluate the selected substring
-                    s = str(temporal_locals[functions[i]](s))
-                    self.view.replace(edit, region, s)
-                    sublime.status_message("InlinePython :: Execution completed.")
-                except Exception as e:
-                    msg = "InlinePython :: Error executing script (%s)" % str(e)
-                    sublime.status_message(msg)
-                    raise e
+            self.view.run_command("inline_python_run", {"function": functions[i]})
 
         sublime.active_window().show_quick_panel(functions, done,
                                                  sublime.MONOSPACE_FONT)
+
+    def evaluate_function(self, edit, function):
+        if function not in temporal_locals:
+            sublime.status_message("InlinePython :: Function `%s` "
+                                   "was not found." % function)
+            return
+
+        for region in self.view.sel():
+            if region.empty():
+                continue
+
+            # Get the selected text
+            s = self.view.substr(region)
+
+            try:
+                # Evaluate the selected substring
+                s = str(temporal_locals[function](s))
+                self.view.replace(edit, region, s)
+            except Exception as e:
+                msg = "InlinePython :: Error executing script (%s)" % str(e)
+                sublime.status_message(msg)
+                raise e
+
+        sublime.status_message("InlinePython :: Execution completed.")
 
 
 class ExpandExpressionCommand(sublime_plugin.TextCommand, _Mixin):
